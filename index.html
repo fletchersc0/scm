@@ -1239,7 +1239,7 @@
             showFatalMessage("Error: could not load participant information. Please contact the researcher.");
             stopExperiment();
           }
-          informationText = "You are invited to take part in a research study about how people learn from repeated observations. You will watch a hidden machine unfold over a series of runs, then judge statements about how the machine works. Participation is voluntary. You may stop at any time by closing the browser window. Your responses will be stored for research purposes without your name.";
+          informationText = "You are invited to take part in a research study about how people learn from repeated observations. You will observe a hidden machine as it runs, then judge statements about how the machine works. Participation is voluntary. You may stop at any time by closing the browser window. Your responses will be stored for research purposes without your name.";
         }
 
         await showSimplePanel(
@@ -1424,13 +1424,13 @@
             panelHTML(
               "<h1>Welcome.</h1>" +
               reviewNoteHTML +
-              "<p>In this task, you will watch runs of a hidden machine.</p>" +
-              "<p>The machine is made of several symbols. Each run unfolds from left to right in stages. At each stage, a symbol may light up.</p>" +
+              "<p>In this task, you will observe the outputs of a hidden machine.</p>" +
+              "<p>The machine follows hidden rules that determine which symbols appear and how they relate to each other. Each run of the machine unfolds from left to right in stages. At each stage, a symbol may light up or stay off.</p>" +
               "<p>If a symbol lights up, that part of the machine became active in that run. If a symbol stays dim after its stage, it did not become active in that run.</p>" +
               "<p>Your task is to learn how the hidden machine works.</p>" +
-              "<p>Later, you will judge statements about the machine. These statements are about the machine overall, not just about one run.</p>" +
-              "<p>The machine can be probabilistic. This means one symbol may make another symbol more likely to light up without guaranteeing it.</p>" +
-              "<p>You will not see the machine’s connections during the main task. You will only see the symbols lighting up across repeated runs.</p>" +
+              "<p>Later, you will judge statements about the machine. These statements are about the machine overall, <strong>not just about one run</strong>.</p>" +
+              "<p>The machine follows rules that determine how likely each symbol is to appear. This means one symbol may make another symbol more likely to light up without guaranteeing it.</p>" +
+              "<p>You will not see the machine’s connections or rules during the main task. You will only see the symbols lighting up across repeated runs.</p>" +
               "<p>Please pay close attention and avoid using notes, screenshots, external tools, or other aids.</p>" +
               renderLegend() +
               '<div class="button-row"><button id="instructionsContinue" class="primary-button">' + escapeHTML(buttonText) + '</button></div>',
