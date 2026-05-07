@@ -1,0 +1,2494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hidden Machine</title>
+  <style>
+    :root {
+      --bg: #000;
+      --panel: #050505;
+      --text: #fff;
+      --muted: #c8c8c8;
+      --input-bg: #1a1a1a;
+      --card-bg: #111;
+      --card-bg-2: #080808;
+      --border: #333;
+      --border-strong: #555;
+      --accent: #8abfff;
+      --accent-dark: #b6d7ff;
+      --accent-soft: rgba(138, 191, 255, 0.22);
+      --dim: #8f8f8f;
+      --unrevealed: #5f5f5f;
+      --success-bg: #082012;
+      --success-border: #297848;
+      --success-text: #b8f2cf;
+      --warn-bg: #281800;
+      --warn-border: #8a5a00;
+      --warn-text: #ffdda3;
+      --error-bg: #2b0909;
+      --error-border: #8a3333;
+      --error-text: #ffd0d0;
+      --shadow: 0 2px 10px #000a;
+      --radius: 6px;
+      --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 18px;
+    }
+
+    @media (max-width: 768px) {
+      :root { font-size: 16px; }
+    }
+
+    @media (max-width: 480px) {
+      :root { font-size: 14px; }
+    }
+
+    @media (min-width: 1200px) {
+      :root { font-size: 20px; }
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.5;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      text-align: center;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .app-shell {
+      width: 92%;
+      max-width: 1040px;
+      padding: 2rem 0 3rem;
+      margin: 0 auto;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      width: 100%;
+      margin: 0 auto 1rem auto;
+      padding: 0.65rem 1rem;
+      background: var(--card-bg-2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      text-align: left;
+    }
+
+    .top-bar strong {
+      color: var(--text);
+      font-size: 1.05rem;
+      letter-spacing: 0.01em;
+    }
+
+    .screen {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      min-height: 66vh;
+    }
+
+    .panel {
+      width: min(900px, 100%);
+      margin: 0 auto;
+      padding: 2rem;
+      background: transparent;
+      color: var(--text);
+      border: 0;
+      border-radius: var(--radius);
+      box-shadow: none;
+      text-align: left;
+    }
+
+    .panel.narrow {
+      width: min(680px, 100%);
+      text-align: center;
+    }
+
+    .panel.wide {
+      width: min(1040px, 100%);
+    }
+
+    .panel.centered {
+      text-align: center;
+    }
+
+    .single-question {
+      font-size: 1.5rem;
+      line-height: 1.3;
+      max-width: 620px;
+      margin: 0 auto 1.4rem auto;
+      text-align: center;
+    }
+
+    .question-subtitle {
+      color: var(--muted);
+      text-align: center;
+      margin: 0 auto 1.2rem auto;
+      max-width: 620px;
+    }
+
+    .choice-button-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      margin-top: 1.3rem;
+    }
+
+    .choice-button-stack button {
+      min-width: 150px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      color: var(--text);
+      line-height: 1.12;
+      margin-top: 0;
+      text-align: inherit;
+    }
+
+    h1 {
+      font-size: clamp(2.1rem, 5vw, 3rem);
+      margin-bottom: 0.35em;
+    }
+
+    h2 {
+      font-size: clamp(1.65rem, 3.5vw, 2.3rem);
+      margin-bottom: 0.45em;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.45em;
+    }
+
+    p {
+      font-size: 1.18rem;
+      margin: 0 0 1em;
+    }
+
+    a {
+      color: var(--accent-dark);
+    }
+
+    .muted,
+    .footer-helper,
+    .instruction-line,
+    .slider-anchors,
+    .stage-label,
+    .debug-note {
+      color: var(--muted);
+    }
+
+    .instruction-line {
+      font-size: 1.18rem;
+      margin: 0 0 1.2rem;
+      text-align: center;
+    }
+
+    .footer-helper {
+      font-size: 1rem;
+      margin-top: 1.2rem;
+      text-align: center;
+    }
+
+    .button-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+      text-align: center;
+    }
+
+    .primary-button,
+    .secondary-button,
+    button {
+      display: inline-block;
+      min-width: 140px;
+      margin: 0.3rem;
+      padding: 0.55rem 1.1rem;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      background: #222;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 1.08rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background-color 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
+    }
+
+    .primary-button:hover:not(:disabled),
+    .secondary-button:hover:not(:disabled),
+    button:hover:not(:disabled) {
+      background: #333;
+      border-color: #666;
+    }
+
+    .primary-button:disabled,
+    .secondary-button:disabled,
+    button:disabled {
+      cursor: not-allowed;
+      color: #777;
+      background: #151515;
+      border-color: #2b2b2b;
+      opacity: 0.8;
+    }
+
+    .field-stack {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1.2rem;
+    }
+
+    .field-label {
+      display: grid;
+      gap: 0.4rem;
+      color: var(--text);
+      font-weight: 700;
+      text-align: left;
+    }
+
+    .field-label span {
+      color: var(--text);
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      background: var(--input-bg);
+      color: var(--text);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+    }
+
+    textarea {
+      min-height: 8rem;
+      resize: vertical;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #888;
+    }
+
+    .radio-card,
+    .check-card {
+      display: block;
+      margin: 0.5rem 0;
+      padding: 0.7rem 0.85rem;
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .radio-card:hover,
+    .check-card:hover {
+      background: #181818;
+      border-color: var(--border-strong);
+    }
+
+    .radio-card input,
+    .check-card input {
+      margin-right: 0.5rem;
+      transform: scale(1.15);
+      accent-color: var(--accent);
+    }
+
+    .message {
+      margin: 1rem 0;
+      padding: 1rem;
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .message.error {
+      background: var(--error-bg);
+      border-color: var(--error-border);
+      color: var(--error-text);
+    }
+
+    .message.warn {
+      background: var(--warn-bg);
+      border-color: var(--warn-border);
+      color: var(--warn-text);
+    }
+
+    .message.success {
+      background: var(--success-bg);
+      border-color: var(--success-border);
+      color: var(--success-text);
+    }
+
+    fieldset.message {
+      text-align: left;
+    }
+
+    fieldset legend {
+      padding: 0 0.4rem;
+      color: var(--text);
+    }
+
+    .machine-layout {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
+      gap: 1rem;
+      align-items: stretch;
+      margin: 1rem auto 0;
+      width: 100%;
+    }
+
+    .stage-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 240px;
+      padding: 1rem;
+      background: var(--card-bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .stage-label {
+      margin-bottom: 0.75rem;
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .stage-tiles {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 0.8rem;
+      width: 100%;
+    }
+
+    .symbol-tile {
+      display: grid;
+      place-items: center;
+      gap: 0.25rem;
+      width: min(126px, 100%);
+      min-height: 108px;
+      padding: 0.75rem 0.5rem;
+      background: var(--card-bg);
+      color: currentColor;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      transition: border-color 0.22s ease, box-shadow 0.22s ease, opacity 0.22s ease, color 0.22s ease, background-color 0.22s ease;
+    }
+
+    .symbol-shape {
+      display: inline-grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      color: currentColor;
+      flex: 0 0 auto;
+    }
+
+    .symbol-shape svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .shape-fill {
+      fill: currentColor;
+      stroke: currentColor;
+      stroke-width: 2.5;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .symbol-letter {
+      font-size: 1.4rem;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+    }
+
+    .tile-unrevealed {
+      opacity: 0.65;
+      color: var(--unrevealed);
+      background: #060606;
+      border-style: dashed;
+      border-color: #444;
+      box-shadow: none;
+    }
+
+    .tile-unrevealed .shape-fill {
+      fill: transparent;
+      stroke: currentColor;
+      stroke-width: 3;
+    }
+
+    .tile-dim {
+      opacity: 1;
+      color: var(--dim);
+      background: var(--card-bg);
+      border-style: solid;
+      border-color: #666;
+      box-shadow: none;
+    }
+
+    .tile-lit {
+      opacity: 1;
+      color: var(--accent);
+      background: #08111d;
+      border-style: solid;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 5px var(--accent-soft), 0 0 22px rgba(138, 191, 255, 0.25);
+    }
+
+    .legend-row {
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin: 1.2rem 0;
+      text-align: left;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      min-width: 185px;
+      padding: 0.6rem 0.7rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .legend-item .symbol-tile {
+      width: 54px;
+      min-height: 54px;
+      padding: 0.3rem;
+      border-width: 2px;
+      border-radius: var(--radius);
+    }
+
+    .legend-item .symbol-shape {
+      width: 24px;
+      height: 24px;
+    }
+
+    .legend-item .symbol-letter {
+      display: none;
+    }
+
+    .statement-card {
+      max-width: 760px;
+      margin: 1rem auto;
+      padding: 1.5em;
+      background: var(--card-bg);
+      color: var(--text);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      text-align: center;
+      font-size: clamp(1.5rem, 3.5vw, 2.1rem);
+      font-weight: 750;
+      line-height: 1.35;
+    }
+
+    .inline-symbol {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.22em;
+      margin: 0 0.05em;
+      color: var(--text);
+      white-space: nowrap;
+      vertical-align: -0.08em;
+    }
+
+    .inline-symbol .symbol-shape {
+      width: 1.05em;
+      height: 1.05em;
+      color: var(--accent);
+    }
+
+    .inline-symbol .inline-letter {
+      color: var(--text);
+      font-weight: 900;
+    }
+
+    .slider-panel {
+      display: grid;
+      gap: 1.2rem;
+      max-width: 760px;
+      margin: 1rem auto 0;
+      padding: 1.2rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .slider-block {
+      display: grid;
+      gap: 0.45rem;
+      text-align: left;
+    }
+
+    .slider-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.6rem;
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    .slider-value {
+      min-width: 3.2rem;
+      padding: 0.2rem 0.55rem;
+      color: var(--accent-dark);
+      background: var(--input-bg);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rating-slider,
+    .confidence-slider,
+    input[type="range"] {
+      width: 100%;
+      min-height: 36px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .slider-anchors {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .slider-anchors span:nth-child(2) {
+      text-align: center;
+    }
+
+    .slider-anchors span:last-child {
+      text-align: right;
+    }
+
+    .graph-control-panel {
+      display: grid;
+      place-items: center;
+      max-width: 760px;
+      margin: 1rem auto;
+      padding: 1rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .visible-graph-svg {
+      width: min(460px, 100%);
+      height: auto;
+    }
+
+    .visible-graph-edge {
+      stroke: #d9d9d9;
+      stroke-width: 3;
+      fill: none;
+    }
+
+    .visible-graph-node {
+      fill: var(--card-bg-2);
+      stroke: #d9d9d9;
+      stroke-width: 3;
+    }
+
+    .visible-graph-label {
+      fill: var(--text);
+      font: 800 18px var(--font);
+      dominant-baseline: middle;
+      text-anchor: middle;
+    }
+
+    .feedback-practice-correct,
+    .feedback-practice-incorrect {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: var(--radius);
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .feedback-practice-correct {
+      background: var(--success-bg);
+      color: var(--success-text);
+      border: 1px solid var(--success-border);
+    }
+
+    .feedback-practice-incorrect {
+      background: var(--warn-bg);
+      color: var(--warn-text);
+      border: 1px solid var(--warn-border);
+    }
+
+    .list-spaced li {
+      margin: 0.5em 0;
+    }
+
+    .blank-panel {
+      min-height: 260px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+    }
+
+    .debug-note {
+      padding: 0.6rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 0.85rem;
+      overflow-wrap: anywhere;
+      text-align: left;
+    }
+
+    @media (max-width: 820px) {
+      .app-shell {
+        width: min(100vw - 20px, 100%);
+        padding-top: 0.75rem;
+      }
+
+      .top-bar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+
+      .panel {
+        padding: 1.2rem 0.4rem;
+      }
+
+      .machine-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .stage-column {
+        min-height: auto;
+      }
+
+      .stage-tiles {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+
+      .symbol-tile {
+        width: 118px;
+        min-height: 100px;
+      }
+
+      .slider-label-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .slider-anchors {
+        font-size: 0.78rem;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <main id="app" class="app-shell" aria-live="polite"></main>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const CONFIG = {
+        experimentName: "Hidden Machine",
+        trialsFile: "machine_world_trials.json",
+        dataPipeID: "USE_EXISTING_OR_PLACEHOLDER",
+        prolificCompletionURL: "USE_EXISTING_OR_PLACEHOLDER",
+        prolificScreenoutURL: "USE_EXISTING_OR_PLACEHOLDER",
+        ineligibleCSV: "prior_participants.csv",
+        prolificPIDParam: "PROLIFIC_PID",
+        fallbackDownload: true,
+        requireExternalConsentText: false,
+        requireConfidence: true,
+        observationStageRevealMs: 800,
+        observationFinalMinimumMs: 1000,
+        interTrialBlankMs: 250,
+        checkpointObservationCounts: [12, 30],
+        finalCheckpointObservationCount: 48,
+        confidenceRequired: true,
+        groups: [],
+        taskVersion: "HM-SCM-v1",
+        debugMode: false
+      };
+
+      const params = new URLSearchParams(window.location.search);
+      const IS_DEMO = params.get("demo") === "1";
+      CONFIG.debugMode = params.get("debug") === "1";
+
+      const VALID_CONDITIONS = ["compression_first", "diagnostic_first", "mixed"];
+      const MAIN_VARIABLE_IDS = ["A", "B", "C", "D", "E"];
+      const EXPECTED_STAGES = { A: 0, B: 1, C: 1, D: 2, E: 3 };
+      const EXPECTED_CHECKPOINT_IDS = ["P01", "P05", "P06", "P12", "P18", "P19"];
+      const CSV_COLUMNS = [
+        "pid",
+        "session_key",
+        "task_version",
+        "condition",
+        "phase",
+        "block_type",
+        "trial_number_in_block",
+        "trial_number_overall",
+        "checkpoint",
+        "position",
+        "row_id",
+        "row_type",
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "proposition_id",
+        "proposition_family",
+        "formal",
+        "truth_value",
+        "primary_target",
+        "display_text",
+        "truth_likelihood",
+        "confidence",
+        "rt_ms",
+        "truth_first_touch_rt_ms",
+        "confidence_first_touch_rt_ms",
+        "control_id",
+        "control_graph_edges",
+        "age",
+        "gender",
+        "education",
+        "comprehension_passed",
+        "comprehension_attempts",
+        "responded_randomly",
+        "used_notes_or_external_aid",
+        "strategy_text",
+        "timestamp_start",
+        "timestamp_end",
+        "timestamp"
+      ];
+
+      const DEMO_DATA = {
+        metadata: {
+          task_name: "Hidden Machine",
+          version: "HM-SCM-v1-demo",
+          n_observations: 6,
+          checkpoints: [3, 6],
+          conditions: ["compression_first", "diagnostic_first", "mixed"]
+        },
+        variables: [
+          { id: "A", label: "A", shape: "circle", stage: 0 },
+          { id: "B", label: "B", shape: "square", stage: 1 },
+          { id: "C", label: "C", shape: "triangle", stage: 1 },
+          { id: "D", label: "D", shape: "diamond", stage: 2 },
+          { id: "E", label: "E", shape: "hexagon", stage: 3 }
+        ],
+        conditions: {
+          compression_first: [
+            { position: 1, row_id: "demo_cf_01", A: 1, B: 1, C: 1, D: 1, E: 1, row_type: "demo" },
+            { position: 2, row_id: "demo_cf_02", A: 1, B: 1, C: 0, D: 1, E: 1, row_type: "demo" },
+            { position: 3, row_id: "demo_cf_03", A: 0, B: 0, C: 0, D: 0, E: 0, row_type: "demo" },
+            { position: 4, row_id: "demo_cf_04", A: 1, B: 0, C: 1, D: 1, E: 0, row_type: "demo" },
+            { position: 5, row_id: "demo_cf_05", A: 0, B: 1, C: 0, D: 1, E: 1, row_type: "demo" },
+            { position: 6, row_id: "demo_cf_06", A: 1, B: 1, C: 1, D: 0, E: 0, row_type: "demo" }
+          ],
+          diagnostic_first: [
+            { position: 1, row_id: "demo_df_01", A: 0, B: 0, C: 0, D: 0, E: 0, row_type: "demo" },
+            { position: 2, row_id: "demo_df_02", A: 1, B: 0, C: 1, D: 1, E: 0, row_type: "demo" },
+            { position: 3, row_id: "demo_df_03", A: 0, B: 1, C: 0, D: 1, E: 1, row_type: "demo" },
+            { position: 4, row_id: "demo_df_04", A: 1, B: 1, C: 1, D: 1, E: 1, row_type: "demo" },
+            { position: 5, row_id: "demo_df_05", A: 1, B: 1, C: 0, D: 1, E: 1, row_type: "demo" },
+            { position: 6, row_id: "demo_df_06", A: 1, B: 1, C: 1, D: 0, E: 0, row_type: "demo" }
+          ],
+          mixed: [
+            { position: 1, row_id: "demo_mx_01", A: 1, B: 1, C: 1, D: 1, E: 1, row_type: "demo" },
+            { position: 2, row_id: "demo_mx_02", A: 0, B: 0, C: 0, D: 0, E: 0, row_type: "demo" },
+            { position: 3, row_id: "demo_mx_03", A: 1, B: 0, C: 1, D: 1, E: 0, row_type: "demo" },
+            { position: 4, row_id: "demo_mx_04", A: 0, B: 1, C: 0, D: 1, E: 1, row_type: "demo" },
+            { position: 5, row_id: "demo_mx_05", A: 1, B: 1, C: 0, D: 1, E: 1, row_type: "demo" },
+            { position: 6, row_id: "demo_mx_06", A: 1, B: 1, C: 1, D: 0, E: 0, row_type: "demo" }
+          ]
+        },
+        checkpoint_proposition_ids: ["P01", "P06"],
+        proposition_bank: [
+          {
+            proposition_id: "P01",
+            family: "true_direct_edge",
+            formal: "Direct(A,B)",
+            truth_value: 1,
+            primary_target: false,
+            display_text: "A directly makes B more likely to light up.",
+            variables_in_statement: ["A", "B"]
+          },
+          {
+            proposition_id: "P05",
+            family: "true_direct_edge",
+            formal: "Direct(D,E)",
+            truth_value: 1,
+            primary_target: false,
+            display_text: "D directly makes E more likely to light up.",
+            variables_in_statement: ["D", "E"]
+          },
+          {
+            proposition_id: "P06",
+            family: "false_direct_compression",
+            formal: "Direct(A,D)",
+            truth_value: 0,
+            primary_target: true,
+            display_text: "A directly makes D more likely to light up.",
+            variables_in_statement: ["A", "D"]
+          },
+          {
+            proposition_id: "P19",
+            family: "true_compound_mediation",
+            formal: "Path(A,D) AND NOT Direct(A,D)",
+            truth_value: 1,
+            primary_target: false,
+            display_text: "A can make D more likely to light up, but not directly.",
+            variables_in_statement: ["A", "D"]
+          }
+        ],
+        graph_visible_control: [
+          {
+            control_id: "GVC_DEMO_01",
+            display_graph_edges: [["X", "Y"], ["Y", "Z"]],
+            statement_text: "X directly makes Y more likely to light up.",
+            truth_value: 1,
+            family: "visible_direct"
+          },
+          {
+            control_id: "GVC_DEMO_02",
+            display_graph_edges: [["X", "Y"], ["Y", "Z"]],
+            statement_text: "Z directly makes X more likely to light up.",
+            truth_value: 0,
+            family: "visible_reverse"
+          }
+        ],
+        practice: {
+          variables: [
+            { id: "X", label: "X", shape: "circle", stage: 0 },
+            { id: "Y", label: "Y", shape: "square", stage: 1 },
+            { id: "Z", label: "Z", shape: "diamond", stage: 2 }
+          ],
+          observation_rows: [
+            { row_id: "practice_obs_1", X: 1, Y: 1, Z: 1 },
+            { row_id: "practice_obs_2", X: 0, Y: 0, Z: 0 },
+            { row_id: "practice_obs_3", X: 1, Y: 1, Z: 0 }
+          ],
+          propositions: [
+            {
+              practice_id: "practice_prop_1",
+              statement_text: "X directly makes Y more likely to light up.",
+              truth_value: 1,
+              feedback_true: "Correct. This practice statement is true.",
+              feedback_false: "Not quite. This practice statement is true."
+            },
+            {
+              practice_id: "practice_prop_2",
+              statement_text: "Z directly makes X more likely to light up.",
+              truth_value: 0,
+              feedback_true: "Not quite. This practice statement is false.",
+              feedback_false: "Correct. This practice statement is false."
+            }
+          ]
+        }
+      };
+
+      const state = {
+        participant: "",
+        sessionKey: "",
+        condition: "",
+        corpus: null,
+        observationRows: [],
+        data: [],
+        trialCountOverall: 0,
+        age: null,
+        gender: null,
+        education: null,
+        comprehension_passed: null,
+        comprehension_attempts: null,
+        responded_randomly: null,
+        used_notes_or_external_aid: null,
+        strategy_text: null,
+        comprehension_responses: [],
+        practice_completed: false
+      };
+
+      let app = null;
+      let currentObservationContext = null;
+
+      document.addEventListener("DOMContentLoaded", function () {
+        app = document.getElementById("app");
+        state.sessionKey = generateSessionKey();
+        runExperiment().catch(function (error) {
+          if (error && error.stopExperiment) return;
+          console.error(error);
+          showFatalMessage("An unexpected error occurred. Please contact the researcher.");
+        });
+      });
+
+      async function runExperiment() {
+        if (CONFIG.debugMode) {
+          console.log("Hidden Machine debug mode", { demo: IS_DEMO, config: CONFIG });
+        }
+        await showPIDGate();
+        const ineligiblePIDs = await loadIneligiblePIDSet();
+        if (ineligiblePIDs.has(normalizePID(state.participant))) {
+          await screenOut("Our records indicate that you have already taken part in this study.");
+          return;
+        }
+        await showInformationAndConsent();
+        renderScreen(
+          panelHTML(
+            "<h1>Loading task materials</h1>" +
+            "<p>This should only take a few seconds.</p>",
+            "narrow centered"
+          )
+        );
+        state.corpus = await loadCorpus();
+        await runDemographics();
+        await showInstructions();
+        await runPractice();
+        await runComprehensionChecks();
+        assignCondition();
+        await runMainObservationBlock();
+        await runFinalPropositionBank();
+        await runGraphVisibleControl();
+        await runPostTaskChecks();
+        await showDebrief();
+        await finishExperiment();
+      }
+
+      async function loadCorpus() {
+        if (IS_DEMO) {
+          validateCorpus(DEMO_DATA);
+          if (CONFIG.debugMode) console.log("Using embedded DEMO_DATA", DEMO_DATA);
+          return deepClone(DEMO_DATA);
+        }
+
+        let corpus;
+        try {
+          const response = await fetch(CONFIG.trialsFile, { cache: "no-store" });
+          if (!response.ok) throw new Error("Could not fetch trials file");
+          corpus = await response.json();
+        } catch (error) {
+          console.error(error);
+          showFatalMessage("Error: could not load machine_world_trials.json. Please contact the researcher.", true);
+          stopExperiment();
+        }
+
+        try {
+          validateCorpus(corpus);
+        } catch (error) {
+          showFatalMessage("Error: invalid machine_world_trials.json: " + escapeHTML(error.message));
+          stopExperiment();
+        }
+        return corpus;
+      }
+
+      function validateCorpus(corpus) {
+        const demoMode = IS_DEMO && corpus === DEMO_DATA;
+        const expectedObservationCount = demoMode ? 6 : 48;
+        const minimumPropositions = demoMode ? 4 : 24;
+        const minimumControlItems = demoMode ? 2 : 6;
+
+        if (!corpus || typeof corpus !== "object") failValidation("The corpus must be a JSON object.");
+        if (!corpus.metadata || typeof corpus.metadata !== "object") failValidation("metadata is missing.");
+        if (!Array.isArray(corpus.variables)) failValidation("variables is missing or is not an array.");
+
+        const variableMap = new Map(corpus.variables.map(function (variable) {
+          return [variable.id, variable];
+        }));
+
+        MAIN_VARIABLE_IDS.forEach(function (id) {
+          if (!variableMap.has(id)) failValidation("variables must include " + id + ".");
+          if (Number(variableMap.get(id).stage) !== EXPECTED_STAGES[id]) {
+            failValidation("stage for " + id + " must be " + EXPECTED_STAGES[id] + ".");
+          }
+        });
+
+        if (!corpus.conditions || typeof corpus.conditions !== "object") failValidation("conditions is missing.");
+        VALID_CONDITIONS.forEach(function (condition) {
+          if (!Array.isArray(corpus.conditions[condition])) {
+            failValidation("conditions must include " + condition + ".");
+          }
+          if (corpus.conditions[condition].length !== expectedObservationCount) {
+            failValidation(condition + " must contain exactly " + expectedObservationCount + " observation rows" + (demoMode ? " in demo mode" : "") + ".");
+          }
+          corpus.conditions[condition].forEach(function (row, index) {
+            MAIN_VARIABLE_IDS.forEach(function (id) {
+              if (row[id] !== 0 && row[id] !== 1) {
+                failValidation(condition + " row " + (index + 1) + " has a non-binary value for " + id + ".");
+              }
+            });
+          });
+        });
+
+        if (!Array.isArray(corpus.checkpoint_proposition_ids)) failValidation("checkpoint_proposition_ids is missing or is not an array.");
+        if (demoMode) {
+          if (corpus.checkpoint_proposition_ids.length < 1) failValidation("checkpoint_proposition_ids must contain at least one item in demo mode.");
+        } else {
+          const got = corpus.checkpoint_proposition_ids.slice().sort().join("|");
+          const expected = EXPECTED_CHECKPOINT_IDS.slice().sort().join("|");
+          if (got !== expected) {
+            failValidation("checkpoint_proposition_ids must contain exactly " + EXPECTED_CHECKPOINT_IDS.join(", ") + ".");
+          }
+        }
+
+        if (!Array.isArray(corpus.proposition_bank) || corpus.proposition_bank.length < minimumPropositions) {
+          failValidation("proposition_bank must contain at least " + minimumPropositions + " propositions" + (demoMode ? " in demo mode" : "") + ".");
+        }
+        const propositionIDs = new Set();
+        corpus.proposition_bank.forEach(function (item, index) {
+          ["proposition_id", "family", "formal", "display_text"].forEach(function (field) {
+            if (item[field] === undefined || item[field] === null || String(item[field]).trim() === "") {
+              failValidation("proposition_bank item " + (index + 1) + " is missing " + field + ".");
+            }
+          });
+          if (item.truth_value !== 0 && item.truth_value !== 1) {
+            failValidation("proposition_bank item " + (index + 1) + " has an invalid truth_value.");
+          }
+          propositionIDs.add(item.proposition_id);
+        });
+        corpus.checkpoint_proposition_ids.forEach(function (id) {
+          if (!propositionIDs.has(id)) failValidation("checkpoint proposition " + id + " is not present in proposition_bank.");
+        });
+
+        if (!Array.isArray(corpus.graph_visible_control) || corpus.graph_visible_control.length < minimumControlItems) {
+          failValidation("graph_visible_control must contain at least " + minimumControlItems + " items" + (demoMode ? " in demo mode" : "") + ".");
+        }
+        corpus.graph_visible_control.forEach(function (item, index) {
+          if (!item.control_id) failValidation("graph_visible_control item " + (index + 1) + " is missing control_id.");
+          if (!Array.isArray(item.display_graph_edges)) failValidation("graph_visible_control item " + (index + 1) + " is missing display_graph_edges.");
+          if (!item.statement_text) failValidation("graph_visible_control item " + (index + 1) + " is missing statement_text.");
+          if (item.truth_value !== 0 && item.truth_value !== 1) failValidation("graph_visible_control item " + (index + 1) + " has an invalid truth_value.");
+        });
+
+        if (!corpus.practice || typeof corpus.practice !== "object") failValidation("practice is missing.");
+        if (!Array.isArray(corpus.practice.variables) || corpus.practice.variables.length < 1) failValidation("practice.variables is missing.");
+        if (!Array.isArray(corpus.practice.observation_rows) || corpus.practice.observation_rows.length < 1) failValidation("practice.observation_rows is missing.");
+        if (!Array.isArray(corpus.practice.propositions) || corpus.practice.propositions.length < 1) failValidation("practice.propositions is missing.");
+      }
+
+      function failValidation(message) {
+        throw new Error(message);
+      }
+
+      async function showPIDGate() {
+        const detectedPID = getPIDFromURL();
+
+        return new Promise(function (resolve) {
+          if (detectedPID) {
+            renderScreen(
+              panelHTML(
+                "<h1>Hidden Machine</h1>" +
+                "<p>Your participant ID was detected.</p>" +
+                "<p class=\"debug-note\">" + escapeHTML(detectedPID) + "</p>" +
+                "<div class=\"button-row\"><button id=\"pidContinue\" class=\"primary-button\">Continue</button></div>",
+                "narrow"
+              )
+            );
+            document.getElementById("pidContinue").addEventListener("click", function () {
+              state.participant = detectedPID.trim();
+              resolve();
+            }, { once: true });
+            return;
+          }
+
+          renderScreen(
+            panelHTML(
+              "<h1>Hidden Machine</h1>" +
+              "<p>Please enter your Prolific participant ID to begin.</p>" +
+              "<label class=\"field-label\"><span>Prolific participant ID</span><input id=\"pidInput\" type=\"text\" autocomplete=\"off\" /></label>" +
+              "<div class=\"button-row\"><button id=\"pidContinue\" class=\"primary-button\" disabled>Continue</button></div>",
+              "narrow"
+            )
+          );
+          const input = document.getElementById("pidInput");
+          const button = document.getElementById("pidContinue");
+          input.focus();
+          input.addEventListener("input", function () {
+            button.disabled = input.value.trim().length < 2;
+          });
+          button.addEventListener("click", function () {
+            const value = input.value.trim();
+            if (!value) return;
+            state.participant = value;
+            resolve();
+          }, { once: true });
+        });
+      }
+
+      async function loadIneligiblePIDSet() {
+        const set = new Set();
+        try {
+          const response = await fetch(CONFIG.ineligibleCSV, { cache: "no-store" });
+          if (!response.ok) throw new Error("prior_participants.csv not available");
+          const text = await response.text();
+          const rows = parseCSVRows(text);
+          if (rows.length < 2) return set;
+          const headers = rows[0].map(function (header) { return normalizeHeader(header); });
+          const candidateHeaders = ["prolific_pid", "prolific_id", "pid", "participant_id"];
+          const pidIndex = headers.findIndex(function (header) {
+            return candidateHeaders.indexOf(header) !== -1;
+          });
+          if (pidIndex < 0) {
+            console.warn("prior_participants.csv loaded but no PID column was found.");
+            return set;
+          }
+          rows.slice(1).forEach(function (row) {
+            if (row[pidIndex]) set.add(normalizePID(row[pidIndex]));
+          });
+        } catch (error) {
+          console.warn("Could not load prior_participants.csv; continuing without screening.", error);
+        }
+        return set;
+      }
+
+      async function showInformationAndConsent() {
+        if (CONFIG.debugMode && params.get("skipConsent") === "1") {
+          console.warn("Skipping consent because debug mode is enabled.");
+          return;
+        }
+
+        let informationText = "";
+        try {
+          const response = await fetch("participant_information.txt", { cache: "no-store" });
+          if (!response.ok) throw new Error("participant_information.txt not available");
+          informationText = await response.text();
+        } catch (error) {
+          if (CONFIG.requireExternalConsentText) {
+            showFatalMessage("Error: could not load participant information. Please contact the researcher.");
+            stopExperiment();
+          }
+          informationText = "You are invited to take part in a research study about how people learn from repeated observations. You will watch a hidden machine unfold over a series of runs, then judge statements about how the machine works. Participation is voluntary. You may stop at any time by closing the browser window. Your responses will be stored for research purposes without your name.";
+        }
+
+        await showSimplePanel(
+          "Participant information",
+          "<div class=\"message\">" + textToParagraphs(informationText) + "</div>",
+          "Next"
+        );
+
+        const isOver18 = await askYesNoQuestion("Are you over 18 years of age?", {
+          title: "Before we begin",
+          yesLabel: "Yes",
+          noLabel: "No",
+          yesValue: true,
+          noValue: false,
+          headerRight: "Eligibility"
+        });
+        if (!isOver18) {
+          await screenOut("You must be 18 or older to participate in this study.");
+          return;
+        }
+
+        const hasConsented = await askYesNoQuestion("Do you consent to participate in the study?", {
+          title: "Consent",
+          yesLabel: "Yes",
+          noLabel: "No",
+          yesValue: true,
+          noValue: false,
+          headerRight: "Consent"
+        });
+        if (!hasConsented) {
+          await screenOut("Thank you for your time. You did not consent to participate in this study.");
+          return;
+        }
+      }
+
+      async function runDemographics() {
+        state.age = await askNumberQuestion({
+          title: "About you",
+          question: "Please enter your age.",
+          min: 18,
+          max: 120,
+          inputId: "ageInput",
+          validationMessage: "Please enter an age between 18 and 120.",
+          headerRight: "Question 1 of 3"
+        });
+
+        state.gender = await askSelectQuestion({
+          title: "About you",
+          question: "Please select your gender.",
+          inputId: "genderInput",
+          headerRight: "Question 2 of 3",
+          options: [
+            "Woman",
+            "Man",
+            "Non-binary",
+            "Another gender",
+            "Prefer not to say"
+          ]
+        });
+
+        state.education = await askSelectQuestion({
+          title: "About you",
+          question: "What is your highest level of education?",
+          inputId: "educationInput",
+          headerRight: "Question 3 of 3",
+          options: [
+            "Less than high school",
+            "High school or equivalent",
+            "Some college or vocational training",
+            "Bachelor's degree",
+            "Postgraduate degree",
+            "Prefer not to say"
+          ]
+        });
+      }
+
+      function askYesNoQuestion(question, options) {
+        options = options || {};
+        const titleHTML = options.title ? "<h1>" + escapeHTML(options.title) + "</h1>" : "";
+        const subtitleHTML = options.subtitle ? "<p class=\"question-subtitle\">" + escapeHTML(options.subtitle) + "</p>" : "";
+        const yesLabel = options.yesLabel || "Yes";
+        const noLabel = options.noLabel || "No";
+        const yesValue = Object.prototype.hasOwnProperty.call(options, "yesValue") ? options.yesValue : true;
+        const noValue = Object.prototype.hasOwnProperty.call(options, "noValue") ? options.noValue : false;
+        const headerRight = options.headerRight || "";
+
+        return new Promise(function (resolve) {
+          renderScreen(
+            panelHTML(
+              titleHTML +
+              subtitleHTML +
+              "<p class=\"single-question\">" + escapeHTML(question) + "</p>" +
+              "<div class=\"choice-button-stack\">" +
+              "<button id=\"yesButton\" class=\"secondary-button\" type=\"button\">" + escapeHTML(yesLabel) + "</button>" +
+              "<button id=\"noButton\" class=\"secondary-button\" type=\"button\">" + escapeHTML(noLabel) + "</button>" +
+              "</div>",
+              "narrow centered"
+            ),
+            headerRight
+          );
+          document.getElementById("yesButton").addEventListener("click", function () { resolve(yesValue); }, { once: true });
+          document.getElementById("noButton").addEventListener("click", function () { resolve(noValue); }, { once: true });
+        });
+      }
+
+      function askNumberQuestion(options) {
+        const min = Number(options.min);
+        const max = Number(options.max);
+        const inputId = options.inputId || "numberInput";
+        const validationMessage = options.validationMessage || "Please enter a valid number.";
+        const headerRight = options.headerRight || "";
+        return new Promise(function (resolve) {
+          renderScreen(
+            panelHTML(
+              "<h1>" + escapeHTML(options.title || "Question") + "</h1>" +
+              "<p class=\"single-question\">" + escapeHTML(options.question || "Please enter a number.") + "</p>" +
+              "<input id=\"" + escapeHTML(inputId) + "\" type=\"number\" min=\"" + escapeHTML(min) + "\" max=\"" + escapeHTML(max) + "\" inputmode=\"numeric\" autocomplete=\"off\" />" +
+              "<div class=\"button-row\"><button id=\"numberContinue\" class=\"primary-button\" disabled>Continue</button></div>",
+              "narrow centered"
+            ),
+            headerRight
+          );
+          const input = document.getElementById(inputId);
+          const button = document.getElementById("numberContinue");
+          function validValue() {
+            const value = Number(input.value);
+            return input.value !== "" && Number.isFinite(value) && value >= min && value <= max;
+          }
+          function update() {
+            button.disabled = !validValue();
+          }
+          input.focus();
+          input.addEventListener("input", update);
+          input.addEventListener("change", update);
+          input.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" && validValue()) button.click();
+          });
+          button.addEventListener("click", function () {
+            if (!validValue()) {
+              alert(validationMessage);
+              return;
+            }
+            resolve(input.value.trim());
+          }, { once: true });
+        });
+      }
+
+      function askSelectQuestion(options) {
+        const inputId = options.inputId || "selectInput";
+        const opts = Array.isArray(options.options) ? options.options : [];
+        const headerRight = options.headerRight || "";
+        const optionHTML = opts.map(function (option) {
+          const value = typeof option === "object" ? option.value : option;
+          const label = typeof option === "object" ? option.label : option;
+          return "<option value=\"" + escapeHTML(value) + "\">" + escapeHTML(label) + "</option>";
+        }).join("");
+
+        return new Promise(function (resolve) {
+          renderScreen(
+            panelHTML(
+              "<h1>" + escapeHTML(options.title || "Question") + "</h1>" +
+              "<p class=\"single-question\">" + escapeHTML(options.question || "Please select an option.") + "</p>" +
+              "<select id=\"" + escapeHTML(inputId) + "\" autocomplete=\"off\"><option value=\"\" disabled selected>Select one</option>" + optionHTML + "</select>" +
+              "<div class=\"button-row\"><button id=\"selectContinue\" class=\"primary-button\" disabled>Continue</button></div>",
+              "narrow centered"
+            ),
+            headerRight
+          );
+          const input = document.getElementById(inputId);
+          const button = document.getElementById("selectContinue");
+          input.focus();
+          function update() { button.disabled = !input.value; }
+          input.addEventListener("change", update);
+          input.addEventListener("input", update);
+          button.addEventListener("click", function () {
+            if (!input.value) return;
+            resolve(input.value);
+          }, { once: true });
+        });
+      }
+
+      async function showInstructions(options) {
+        options = options || {};
+        const reviewMode = options.reviewMode === true;
+        const reviewNoteHTML = reviewMode
+          ? '<div class="message warn"><p>Review the instructions below. When you are ready, return to the checks. You will not need to repeat the practice runs or practice statements.</p></div>'
+          : "";
+        const buttonText = reviewMode ? "Return to checks" : "Start practice";
+
+        return new Promise(function (resolve) {
+          renderScreen(
+            panelHTML(
+              "<h1>Welcome.</h1>" +
+              reviewNoteHTML +
+              "<p>In this task, you will watch runs of a hidden machine.</p>" +
+              "<p>The machine is made of several symbols. Each run unfolds from left to right in stages. At each stage, a symbol may light up.</p>" +
+              "<p>If a symbol lights up, that part of the machine became active in that run. If a symbol stays dim after its stage, it did not become active in that run.</p>" +
+              "<p>Your task is to learn how the hidden machine works.</p>" +
+              "<p>Later, you will judge statements about the machine. These statements are about the machine overall, not just about one run.</p>" +
+              "<p>The machine can be probabilistic. This means one symbol may make another symbol more likely to light up without guaranteeing it.</p>" +
+              "<p>You will not see the machine’s connections during the main task. You will only see the symbols lighting up across repeated runs.</p>" +
+              "<p>Please pay close attention and avoid using notes, screenshots, external tools, or other aids.</p>" +
+              renderLegend() +
+              '<div class="button-row"><button id="instructionsContinue" class="primary-button">' + escapeHTML(buttonText) + '</button></div>',
+              "wide"
+            )
+          );
+          document.getElementById("instructionsContinue").addEventListener("click", resolve, { once: true });
+        });
+      }
+
+      async function runPractice() {
+        const practice = state.corpus.practice;
+        await showSimplePanel(
+          "Practice",
+          "<p>You will first see a few practice runs with different symbols. These practice runs are only to show how the display works.</p>" +
+          "<p>After that, you will answer a few practice statements and receive feedback.</p>",
+          "Start practice runs"
+        );
+
+        for (let i = 0; i < practice.observation_rows.length; i += 1) {
+          await runObservationRun(practice.observation_rows[i], i, practice.observation_rows.length, {
+            phase: "Practice",
+            blockType: "PracticeObservation",
+            variables: practice.variables,
+            instruction: "Watch how the practice machine run unfolds from left to right.",
+            headerRight: "Practice run " + (i + 1) + " of " + practice.observation_rows.length,
+            buttonLabel: i + 1 === practice.observation_rows.length ? "Continue" : "Next practice run",
+            log: true,
+            showLegend: i === 0
+          });
+        }
+
+        await showSimplePanel(
+          "Practice statements",
+          "<p>Now judge practice statements using the same sliders you will use later.</p>" +
+          "<p>For practice only, you will receive feedback after each answer.</p>",
+          "Start practice statements"
+        );
+
+        for (let i = 0; i < practice.propositions.length; i += 1) {
+          const item = Object.assign({}, practice.propositions[i], {
+            _displayIndex: i + 1,
+            _displayTotal: practice.propositions.length,
+            _headerLabel: "Practice statement",
+            _trialNumberInBlock: i + 1
+          });
+          const response = await runPropositionTrial(item, "Practice", "PracticeProposition", "");
+          const judgedTrue = Number(response.truth_likelihood) >= 50;
+          const correct = (judgedTrue && Number(item.truth_value) === 1) || (!judgedTrue && Number(item.truth_value) === 0);
+          const feedbackText = judgedTrue ? item.feedback_true : item.feedback_false;
+          await showPracticeFeedback(feedbackText || (correct ? "Correct." : "Not quite."), correct);
+        }
+        state.practice_completed = true;
+      }
+
+      async function runComprehensionChecks() {
+        const checks = [
+          {
+            id: "scope",
+            question: "Are the statements about one single run or about the hidden machine overall?",
+            correct: "overall",
+            options: [
+              { value: "single", label: "One single run." },
+              { value: "overall", label: "The hidden machine overall." },
+              { value: "last", label: "Only the most recent run." }
+            ]
+          },
+          {
+            id: "probabilistic",
+            question: "Can a symbol make another symbol more likely to light up without guaranteeing it?",
+            correct: "yes",
+            options: [
+              { value: "yes", label: "Yes." },
+              { value: "no", label: "No." }
+            ]
+          },
+          {
+            id: "later",
+            question: "Do later-stage symbols affect earlier-stage symbols in this task?",
+            correct: "no",
+            options: [
+              { value: "yes", label: "Yes." },
+              { value: "no", label: "No." }
+            ]
+          },
+          {
+            id: "connections",
+            question: "Will you see the hidden machine’s connections during the main observation phase?",
+            correct: "no",
+            options: [
+              { value: "yes", label: "Yes." },
+              { value: "no", label: "No." }
+            ]
+          }
+        ];
+
+        let attempts = 0;
+        while (attempts < 2) {
+          const result = await showComprehensionForm(checks, attempts);
+          if (result && result.action === "review_instructions") {
+            await showInstructions({ reviewMode: true });
+            continue;
+          }
+          const responses = result.responses;
+          attempts += 1;
+          state.comprehension_attempts = attempts;
+          state.comprehension_responses.push(responses);
+          const passed = checks.every(function (check) {
+            return responses[check.id] === check.correct;
+          });
+          if (passed) {
+            state.comprehension_passed = 1;
+            await showSimplePanel(
+              "Ready to begin",
+              "<p>You have completed the practice and checks. The main task will begin next.</p>" +
+              "<p>During the main task, there is no feedback. Please judge each statement based on what you have learned from the machine runs.</p>",
+              "Begin main task"
+            );
+            return;
+          }
+        }
+
+        state.comprehension_passed = 0;
+        await screenOut("Thank you for your time. You are not eligible to continue with this study.");
+      }
+
+      function assignCondition() {
+        const forced = params.get("condition");
+        if (forced && VALID_CONDITIONS.indexOf(forced) !== -1) {
+          state.condition = forced;
+        } else {
+          state.condition = sample(VALID_CONDITIONS);
+        }
+        state.observationRows = state.corpus.conditions[state.condition].slice();
+        if (CONFIG.debugMode) console.log("Assigned condition", state.condition, state.observationRows);
+      }
+
+      async function runMainObservationBlock() {
+        const total = state.observationRows.length;
+        const checkpointCounts = getIntermediateCheckpointCounts();
+
+        await showSimplePanel(
+          "Main task",
+          "<p>You will now watch repeated runs of the hidden machine.</p>" +
+          "<p>Watch which symbols light up during each run. Your task is to learn how the machine works.</p>" +
+          "<p>You will not see the machine’s connections during these runs.</p>",
+          "Start machine runs"
+        );
+
+        for (let i = 0; i < total; i += 1) {
+          await runObservationRun(state.observationRows[i], i, total);
+          const completed = i + 1;
+          if (checkpointCounts.indexOf(completed) !== -1) {
+            await runCheckpoint(completed);
+          }
+        }
+      }
+
+      async function runObservationRun(row, index, total, options) {
+        options = options || {};
+        const variables = options.variables || state.corpus.variables;
+        const stageNumbers = getStageNumbers(variables);
+        const headerRight = options.headerRight || "Run " + String(index + 1).padStart(2, "0") + " of " + total;
+        const instruction = options.instruction || "Watch which symbols light up during this run. Your task is to learn how the machine works.";
+        const buttonLabel = options.buttonLabel || (index + 1 === total ? "Continue" : "Next run");
+        const phase = options.phase || "Observation";
+        const blockType = options.blockType || "MainObservation";
+        const shouldLog = options.log !== false;
+        const showLegendNow = options.showLegend || (phase === "Observation" && index < 2);
+        const timestampStart = nowISO();
+        const perfStart = performance.now();
+
+        currentObservationContext = {
+          variables: variables,
+          row: row,
+          revealedStage: -1
+        };
+
+        renderScreen(
+          panelHTML(
+            "<p class=\"instruction-line\">" + escapeHTML(instruction) + "</p>" +
+            renderMachineLayout(variables, row, -1) +
+            (showLegendNow ? renderLegend(variables) : "") +
+            "<p class=\"footer-helper\">A symbol that lights up became active in this run. A symbol that stays dim after its stage did not become active.</p>" +
+            "<div class=\"button-row\"><button id=\"nextRunButton\" class=\"primary-button\" disabled>" + escapeHTML(buttonLabel) + "</button></div>",
+            "wide"
+          ),
+          headerRight
+        );
+
+        await sleep(Math.min(300, Math.max(100, effectiveTiming(CONFIG.observationStageRevealMs) / 2)));
+        for (let i = 0; i < stageNumbers.length; i += 1) {
+          revealStage(stageNumbers[i], row);
+          if (i < stageNumbers.length - 1) {
+            await sleep(effectiveTiming(CONFIG.observationStageRevealMs));
+          }
+        }
+        await sleep(effectiveTiming(CONFIG.observationFinalMinimumMs));
+
+        const nextButton = document.getElementById("nextRunButton");
+        if (nextButton) nextButton.disabled = false;
+        await waitForButtonClick("nextRunButton");
+
+        const timestampEnd = nowISO();
+        const perfEnd = performance.now();
+
+        if (shouldLog) {
+          const log = {
+            phase: phase,
+            block_type: blockType,
+            trial_number_in_block: index + 1,
+            trial_number_overall: nextOverallTrialNumber(),
+            position: row.position !== undefined ? row.position : index + 1,
+            row_id: row.row_id !== undefined ? row.row_id : "",
+            row_type: row.row_type !== undefined ? row.row_type : "",
+            timestamp_start: timestampStart,
+            timestamp_end: timestampEnd,
+            view_time_ms: Math.round(perfEnd - perfStart)
+          };
+          MAIN_VARIABLE_IDS.forEach(function (id) {
+            log[id] = row[id] !== undefined ? row[id] : "";
+          });
+          logRow(log);
+        }
+
+        currentObservationContext = null;
+        await showInterTrialBlank();
+      }
+
+      function revealStage(stageIndex, row) {
+        if (!currentObservationContext) return;
+        currentObservationContext.revealedStage = Math.max(currentObservationContext.revealedStage, stageIndex);
+        currentObservationContext.variables.forEach(function (variable) {
+          const tile = document.getElementById(tileDOMID(variable.id));
+          if (!tile) return;
+          const stateClass = getTileStateClass(variable, row, currentObservationContext.revealedStage);
+          tile.classList.remove("tile-unrevealed", "tile-dim", "tile-lit");
+          tile.classList.add(stateClass);
+          const activityText = stateClass === "tile-lit" ? "lit up" : stateClass === "tile-dim" ? "revealed but dim" : "not yet revealed";
+          tile.setAttribute("aria-label", (variable.label || variable.id) + ": " + activityText);
+        });
+      }
+
+      async function runCheckpoint(checkpointCount) {
+        await showSimplePanel(
+          "Checkpoint",
+          "<p>You will now judge a few statements about the hidden machine.</p>" +
+          "<p>These statements are about the machine overall, not just one run.</p>",
+          "Start checkpoint statements"
+        );
+
+        const byID = new Map(state.corpus.proposition_bank.map(function (item) { return [item.proposition_id, item]; }));
+        const items = shuffle(state.corpus.checkpoint_proposition_ids.map(function (id) { return byID.get(id); }).filter(Boolean));
+        for (let i = 0; i < items.length; i += 1) {
+          const item = Object.assign({}, items[i], {
+            _displayIndex: i + 1,
+            _displayTotal: items.length,
+            _headerLabel: "Checkpoint statement",
+            _trialNumberInBlock: i + 1
+          });
+          await runPropositionTrial(item, "CheckpointJudgement", "Checkpoint" + checkpointCount, checkpointCount);
+        }
+      }
+
+      async function runPropositionTrial(item, phase, blockType, checkpoint) {
+        const statementText = item.display_text || item.statement_text || "";
+        const headerLabel = item._headerLabel || (phase === "GraphVisibleControl" ? "Visible statement" : "Statement");
+        const displayIndex = item._displayIndex || 1;
+        const displayTotal = item._displayTotal || 1;
+        const trialNumberInBlock = item._trialNumberInBlock || displayIndex;
+        const rightText = headerLabel + " " + displayIndex + " of " + displayTotal;
+        const isControl = phase === "GraphVisibleControl";
+        const timestampStart = nowISO();
+        const perfStart = performance.now();
+        let truthTouched = false;
+        let confidenceTouched = false;
+        let truthFirstTouchRT = "";
+        let confidenceFirstTouchRT = "";
+        let submitted = false;
+
+        return new Promise(function (resolve) {
+          renderScreen(
+            panelHTML(
+              "<p class=\"instruction-line\">Judge how likely this statement is to be true of " + (isControl ? "the visible practice machine" : "the hidden machine") + ".</p>" +
+              (isControl ? renderVisibleGraph(item.display_graph_edges || []) : "") +
+              "<div class=\"statement-card\">" + renderTextWithInlineSymbols(statementText) + "</div>" +
+              "<div class=\"slider-panel\">" +
+              sliderBlockHTML("truth", "How likely is this statement to be true of the machine?", "Definitely false", "Unsure", "Definitely true", "rating-slider") +
+              sliderBlockHTML("confidence", "How confident are you in your judgement?", "Not confident at all", "", "Very confident", "rating-slider confidence-slider") +
+              "</div>" +
+              "<p class=\"footer-helper\">These statements are about the machine overall, not just one run.</p>" +
+              "<div class=\"button-row\"><button id=\"propositionContinue\" class=\"primary-button\" disabled>Continue</button></div>",
+              "wide"
+            ),
+            rightText
+          );
+
+          const truthSlider = document.getElementById("truthSlider");
+          const confidenceSlider = document.getElementById("confidenceSlider");
+          const truthValue = document.getElementById("truthValue");
+          const confidenceValue = document.getElementById("confidenceValue");
+          const continueButton = document.getElementById("propositionContinue");
+
+          function markTruthTouched() {
+            if (!truthTouched) {
+              truthTouched = true;
+              truthFirstTouchRT = Math.round(performance.now() - perfStart);
+            }
+            updateContinueState();
+          }
+
+          function markConfidenceTouched() {
+            if (!confidenceTouched) {
+              confidenceTouched = true;
+              confidenceFirstTouchRT = Math.round(performance.now() - perfStart);
+            }
+            updateContinueState();
+          }
+
+          function updateContinueState() {
+            truthValue.textContent = truthSlider.value;
+            confidenceValue.textContent = confidenceSlider.value;
+            const confidenceOK = !(CONFIG.requireConfidence !== false && CONFIG.confidenceRequired !== false) || confidenceTouched;
+            continueButton.disabled = !(truthTouched && confidenceOK);
+          }
+
+          ["input", "change", "pointerdown", "touchstart", "keydown"].forEach(function (eventName) {
+            truthSlider.addEventListener(eventName, markTruthTouched);
+            confidenceSlider.addEventListener(eventName, markConfidenceTouched);
+          });
+          truthSlider.addEventListener("input", updateContinueState);
+          confidenceSlider.addEventListener("input", updateContinueState);
+
+          continueButton.addEventListener("click", function () {
+            if (submitted || continueButton.disabled) return;
+            submitted = true;
+            continueButton.disabled = true;
+            const perfEnd = performance.now();
+            const timestampEnd = nowISO();
+            const graphEdges = item.display_graph_edges ? JSON.stringify(item.display_graph_edges) : "";
+            const log = {
+              phase: phase,
+              block_type: blockType,
+              trial_number_in_block: trialNumberInBlock,
+              trial_number_overall: nextOverallTrialNumber(),
+              checkpoint: checkpoint !== undefined && checkpoint !== null ? checkpoint : "",
+              proposition_id: item.proposition_id || item.practice_id || "",
+              proposition_family: item.family || "",
+              formal: item.formal || "",
+              truth_value: item.truth_value !== undefined ? item.truth_value : "",
+              primary_target: item.primary_target === true ? 1 : item.primary_target === false ? 0 : "",
+              display_text: statementText,
+              truth_likelihood: truthSlider.value,
+              confidence: confidenceSlider.value,
+              rt_ms: Math.round(perfEnd - perfStart),
+              truth_first_touch_rt_ms: truthFirstTouchRT,
+              confidence_first_touch_rt_ms: confidenceFirstTouchRT,
+              control_id: item.control_id || "",
+              control_graph_edges: graphEdges,
+              timestamp_start: timestampStart,
+              timestamp_end: timestampEnd,
+              timestamp: timestampEnd
+            };
+            logRow(log);
+            resolve({
+              truth_likelihood: Number(truthSlider.value),
+              confidence: Number(confidenceSlider.value),
+              rt_ms: Math.round(perfEnd - perfStart)
+            });
+          }, { once: true });
+        });
+      }
+
+      async function runFinalPropositionBank() {
+        await showSimplePanel(
+          "Final statements",
+          "<p>You have finished watching the hidden machine runs.</p>" +
+          "<p>You will now judge a final set of statements about the hidden machine overall. There is no feedback.</p>",
+          "Start final statements"
+        );
+
+        const items = shuffle(state.corpus.proposition_bank.slice());
+        const checkpoint = getFinalCheckpointCount();
+        for (let i = 0; i < items.length; i += 1) {
+          const item = Object.assign({}, items[i], {
+            _displayIndex: i + 1,
+            _displayTotal: items.length,
+            _headerLabel: "Statement",
+            _trialNumberInBlock: i + 1
+          });
+          await runPropositionTrial(item, "FinalJudgement", "FinalPropositionBank", checkpoint);
+        }
+      }
+
+      async function runGraphVisibleControl() {
+        await showSimplePanel(
+          "Visible practice machine",
+          "<p>Now you will see a small practice machine where the connections are visible. This part checks how people judge statements when the structure is shown.</p>" +
+          "<p>This is a different short task. It does not show the hidden machine from the main task.</p>",
+          "Start visible practice machine"
+        );
+
+        const controlPool = shuffle(state.corpus.graph_visible_control.slice());
+        const items = IS_DEMO ? controlPool : controlPool.slice(0, Math.min(8, controlPool.length));
+        for (let i = 0; i < items.length; i += 1) {
+          const item = Object.assign({}, items[i], {
+            _displayIndex: i + 1,
+            _displayTotal: items.length,
+            _headerLabel: "Visible statement",
+            _trialNumberInBlock: i + 1
+          });
+          await runPropositionTrial(item, "GraphVisibleControl", "GraphVisibleControl", "");
+        }
+      }
+
+      async function runPostTaskChecks() {
+        return new Promise(function (resolve) {
+          renderScreen(
+            panelHTML(
+              "<h1>Final questions</h1>" +
+              "<div class=\"field-stack\">" +
+              consentQuestionHTML("respondedRandomly", "Did you respond randomly at any point during the study?") +
+              consentQuestionHTML("usedAid", "Did you use notes, screenshots, external tools, or any other aid during the study?") +
+              "<label class=\"field-label\"><span>Briefly describe any pattern or strategy you noticed while completing the task.</span><textarea id=\"strategyText\"></textarea></label>" +
+              "</div>" +
+              "<div class=\"button-row\"><button id=\"postTaskContinue\" class=\"primary-button\" disabled>Continue</button></div>",
+              "wide"
+            )
+          );
+          const button = document.getElementById("postTaskContinue");
+          Array.from(document.querySelectorAll("input[type='radio']")).forEach(function (radio) {
+            radio.addEventListener("change", function () {
+              button.disabled = !(getRadioValue("respondedRandomly") && getRadioValue("usedAid"));
+            });
+          });
+          button.addEventListener("click", function () {
+            state.responded_randomly = getRadioValue("respondedRandomly");
+            state.used_notes_or_external_aid = getRadioValue("usedAid");
+            state.strategy_text = document.getElementById("strategyText").value.trim();
+            resolve();
+          }, { once: true });
+        });
+      }
+
+      async function showDebrief() {
+        let debriefText = "";
+        try {
+          const response = await fetch("debrief.txt", { cache: "no-store" });
+          if (!response.ok) throw new Error("debrief.txt not available");
+          debriefText = await response.text();
+        } catch (error) {
+          debriefText = "Thank you for completing the study. This task studied how people learn hidden structure from repeated observations and how they judge statements about that hidden structure. The machine and symbols were artificial and did not involve real-world claims.";
+        }
+
+        await showSimplePanel("Debrief", textToParagraphs(debriefText), "Finish");
+      }
+
+      function logRow(row) {
+        const base = {};
+        CSV_COLUMNS.forEach(function (column) { base[column] = ""; });
+        base.pid = state.participant;
+        base.session_key = state.sessionKey;
+        base.task_version = CONFIG.taskVersion;
+        base.condition = state.condition;
+        base.age = state.age;
+        base.gender = state.gender;
+        base.education = state.education;
+        base.comprehension_passed = state.comprehension_passed;
+        base.comprehension_attempts = state.comprehension_attempts;
+        base.responded_randomly = state.responded_randomly;
+        base.used_notes_or_external_aid = state.used_notes_or_external_aid;
+        base.strategy_text = state.strategy_text;
+        Object.keys(row).forEach(function (key) {
+          if (CSV_COLUMNS.indexOf(key) !== -1) base[key] = row[key];
+        });
+        state.data.push(base);
+      }
+
+      function finalizeParticipantFields() {
+        state.data.forEach(function (row) {
+          row.pid = state.participant;
+          row.session_key = state.sessionKey;
+          row.task_version = CONFIG.taskVersion;
+          row.condition = state.condition;
+          row.age = state.age;
+          row.gender = state.gender;
+          row.education = state.education;
+          row.comprehension_passed = state.comprehension_passed;
+          row.comprehension_attempts = state.comprehension_attempts;
+          row.responded_randomly = state.responded_randomly;
+          row.used_notes_or_external_aid = state.used_notes_or_external_aid;
+          row.strategy_text = state.strategy_text;
+        });
+      }
+
+      function toCSV(rows) {
+        const header = CSV_COLUMNS.join(",");
+        const body = rows.map(function (row) {
+          return CSV_COLUMNS.map(function (column) {
+            return csvEscape(row[column]);
+          }).join(",");
+        }).join("\n");
+        return header + "\n" + body;
+      }
+
+      async function uploadCSV(filename, csv) {
+        const response = await fetch("https://pipe.jspsych.org/api/data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            experimentID: CONFIG.dataPipeID,
+            filename: filename,
+            data: csv
+          })
+        });
+        if (!response.ok) {
+          let responseText = "";
+          try { responseText = await response.text(); } catch (error) { responseText = ""; }
+          throw new Error("DataPipe upload failed: " + response.status + " " + responseText);
+        }
+        return response;
+      }
+
+      function downloadFile(content, filename, contentType) {
+        const blob = new Blob([content], { type: contentType || "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      }
+
+      async function finishExperiment() {
+        finalizeParticipantFields();
+        const csv = toCSV(state.data);
+        const timestamp = filenameTimestamp();
+        const filename = "HiddenMachine_" + safeFilenamePart(state.participant || "unknown") + "_" + safeFilenamePart(state.condition || "condition") + "_" + timestamp + ".csv";
+
+        renderScreen(
+          panelHTML(
+            "<h1>Saving your responses</h1>" +
+            "<p>Your responses are being saved.</p>",
+            "narrow"
+          )
+        );
+
+        try {
+          await uploadCSV(filename, csv);
+          renderScreen(
+            panelHTML(
+              "<h1>Upload complete</h1>" +
+              "<p>Your responses have been saved successfully.</p>" +
+              completionRedirectHTML(),
+              "narrow"
+            )
+          );
+          if (isUsableURL(CONFIG.prolificCompletionURL)) {
+            window.location.href = CONFIG.prolificCompletionURL;
+          }
+        } catch (error) {
+          console.error(error);
+          if (CONFIG.fallbackDownload) {
+            downloadFile(csv, filename, "text/csv;charset=utf-8");
+            renderScreen(
+              panelHTML(
+                "<h1>Local data file downloaded</h1>" +
+                "<div class=\"message warn\"><p>The automatic upload did not complete, so your data file has been downloaded locally by your browser.</p><p>Please keep the downloaded file and contact the researcher if asked.</p></div>" +
+                completionRedirectHTML(),
+                "narrow"
+              )
+            );
+          } else {
+            renderScreen(
+              panelHTML(
+                "<h1>Upload error</h1>" +
+                "<div class=\"message error\">Your responses could not be uploaded automatically. Please contact the researcher.</div>" +
+                completionRedirectHTML(),
+                "narrow"
+              )
+            );
+          }
+        }
+      }
+
+      function renderMachineLayout(variables, row, revealedStage) {
+        const stageNumbers = getStageNumbers(variables);
+        return "<div class=\"machine-layout\" role=\"group\" aria-label=\"Machine stages\">" +
+          stageNumbers.map(function (stage) {
+            const stageVariables = variables.filter(function (variable) { return Number(variable.stage) === Number(stage); });
+            return "<div class=\"stage-column\">" +
+              "<div class=\"stage-label\">Stage " + escapeHTML(stage) + "</div>" +
+              "<div class=\"stage-tiles\">" +
+              stageVariables.map(function (variable) { return renderSymbolTile(variable, row, revealedStage); }).join("") +
+              "</div>" +
+              "</div>";
+          }).join("") +
+          "</div>";
+      }
+
+      function renderSymbolTile(variable, row, revealedStage) {
+        const stateClass = getTileStateClass(variable, row, revealedStage);
+        const label = variable.label || variable.id;
+        const activityText = stateClass === "tile-lit" ? "lit up" : stateClass === "tile-dim" ? "revealed but dim" : "not yet revealed";
+        return "<div id=\"" + tileDOMID(variable.id) + "\" class=\"symbol-tile " + stateClass + "\" aria-label=\"" + escapeHTML(label + ": " + activityText) + "\">" +
+          "<span class=\"symbol-shape\" aria-hidden=\"true\">" + renderShapeSVG(variable.shape) + "</span>" +
+          "<span class=\"symbol-letter\">" + escapeHTML(label) + "</span>" +
+          "</div>";
+      }
+
+      function getTileStateClass(variable, row, revealedStage) {
+        if (Number(variable.stage) > Number(revealedStage)) return "tile-unrevealed";
+        return Number(row[variable.id]) === 1 ? "tile-lit" : "tile-dim";
+      }
+
+      function renderLegend(variables) {
+        const sampleVariable = (variables && variables[0]) || { id: "A", label: "A", shape: "circle", stage: 0 };
+        const unrevealed = Object.assign({}, sampleVariable, { id: "legendUnrevealed", label: "" });
+        const dim = Object.assign({}, sampleVariable, { id: "legendDim", label: "" });
+        const lit = Object.assign({}, sampleVariable, { id: "legendLit", label: "" });
+        return "<div class=\"legend-row\" aria-label=\"Symbol state legend\">" +
+          legendItemHTML(unrevealed, "tile-unrevealed", "Not yet revealed") +
+          legendItemHTML(dim, "tile-dim", "Revealed but dim") +
+          legendItemHTML(lit, "tile-lit", "Lit up") +
+          "</div>";
+      }
+
+      function legendItemHTML(variable, className, label) {
+        return "<div class=\"legend-item\">" +
+          "<div class=\"symbol-tile " + className + "\" aria-hidden=\"true\">" +
+          "<span class=\"symbol-shape\">" + renderShapeSVG(variable.shape) + "</span>" +
+          "<span class=\"symbol-letter\">" + escapeHTML(variable.label || "") + "</span>" +
+          "</div>" +
+          "<span>" + escapeHTML(label) + "</span>" +
+          "</div>";
+      }
+
+      function renderSymbolInline(variableId) {
+        const variable = findVariableSpec(variableId);
+        return "<span class=\"inline-symbol\" aria-label=\"symbol " + escapeHTML(variableId) + "\">" +
+          "<span class=\"symbol-shape\" aria-hidden=\"true\">" + renderShapeSVG(variable.shape) + "</span>" +
+          "<span class=\"inline-letter\">" + escapeHTML(variable.label || variableId) + "</span>" +
+          "</span>";
+      }
+
+      function renderTextWithInlineSymbols(text) {
+        const variableLetters = new Set(["A", "B", "C", "D", "E", "X", "Y", "Z", "L", "M", "N"]);
+        const regex = /(^|[^A-Za-z0-9_])([A-Z])(?=([^A-Za-z0-9_]|$))/g;
+        let output = "";
+        let lastIndex = 0;
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+          const prefix = match[1] || "";
+          const letter = match[2];
+          output += escapeHTML(text.slice(lastIndex, match.index));
+          output += escapeHTML(prefix);
+          if (variableLetters.has(letter)) {
+            output += renderSymbolInline(letter);
+          } else {
+            output += escapeHTML(letter);
+          }
+          lastIndex = match.index + prefix.length + letter.length;
+        }
+        output += escapeHTML(text.slice(lastIndex));
+        return output;
+      }
+
+      function renderShapeSVG(shape) {
+        const type = String(shape || "circle").toLowerCase();
+        if (type === "square") {
+          return "<svg viewBox=\"0 0 40 40\" focusable=\"false\"><rect class=\"shape-fill\" x=\"8\" y=\"8\" width=\"24\" height=\"24\" rx=\"3\"></rect></svg>";
+        }
+        if (type === "triangle") {
+          return "<svg viewBox=\"0 0 40 40\" focusable=\"false\"><polygon class=\"shape-fill\" points=\"20,6 34,33 6,33\"></polygon></svg>";
+        }
+        if (type === "diamond") {
+          return "<svg viewBox=\"0 0 40 40\" focusable=\"false\"><polygon class=\"shape-fill\" points=\"20,5 35,20 20,35 5,20\"></polygon></svg>";
+        }
+        if (type === "hexagon") {
+          return "<svg viewBox=\"0 0 40 40\" focusable=\"false\"><polygon class=\"shape-fill\" points=\"20,5 33,12.5 33,27.5 20,35 7,27.5 7,12.5\"></polygon></svg>";
+        }
+        return "<svg viewBox=\"0 0 40 40\" focusable=\"false\"><circle class=\"shape-fill\" cx=\"20\" cy=\"20\" r=\"14\"></circle></svg>";
+      }
+
+      function renderVisibleGraph(edges) {
+        const nodes = unique(edges.reduce(function (accumulator, edge) {
+          if (Array.isArray(edge)) return accumulator.concat(edge);
+          return accumulator;
+        }, []));
+        const fallbackNodes = nodes.length ? nodes : ["X", "Y", "Z"];
+        const width = 420;
+        const height = 150;
+        const nodeY = 78;
+        const gap = fallbackNodes.length > 1 ? (width - 120) / (fallbackNodes.length - 1) : 0;
+        const positions = {};
+        fallbackNodes.forEach(function (node, index) {
+          positions[node] = { x: 60 + gap * index, y: nodeY };
+        });
+        const edgeHTML = edges.map(function (edge) {
+          if (!Array.isArray(edge) || edge.length < 2 || !positions[edge[0]] || !positions[edge[1]]) return "";
+          const from = positions[edge[0]];
+          const to = positions[edge[1]];
+          const dx = to.x - from.x;
+          const dy = to.y - from.y;
+          const length = Math.sqrt(dx * dx + dy * dy) || 1;
+          const startX = from.x + (dx / length) * 29;
+          const startY = from.y + (dy / length) * 29;
+          const endX = to.x - (dx / length) * 34;
+          const endY = to.y - (dy / length) * 34;
+          return "<line class=\"visible-graph-edge\" x1=\"" + startX.toFixed(1) + "\" y1=\"" + startY.toFixed(1) + "\" x2=\"" + endX.toFixed(1) + "\" y2=\"" + endY.toFixed(1) + "\" marker-end=\"url(#arrowhead)\"></line>";
+        }).join("");
+        const nodeHTML = fallbackNodes.map(function (node) {
+          const position = positions[node];
+          return "<g><circle class=\"visible-graph-node\" cx=\"" + position.x + "\" cy=\"" + position.y + "\" r=\"26\"></circle><text class=\"visible-graph-label\" x=\"" + position.x + "\" y=\"" + position.y + "\">" + escapeHTML(node) + "</text></g>";
+        }).join("");
+        return "<div class=\"graph-control-panel\" aria-label=\"Visible practice machine connections\">" +
+          "<svg class=\"visible-graph-svg\" viewBox=\"0 0 " + width + " " + height + "\" role=\"img\" aria-label=\"Visible connections between practice symbols\">" +
+          "<defs><marker id=\"arrowhead\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"7\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M 0 0 L 10 5 L 0 10 z\" fill=\"#485467\"></path></marker></defs>" +
+          edgeHTML + nodeHTML +
+          "</svg>" +
+          "</div>";
+      }
+
+      function sliderBlockHTML(prefix, prompt, leftAnchor, midAnchor, rightAnchor, className) {
+        const sliderID = prefix + "Slider";
+        const valueID = prefix + "Value";
+        return "<div class=\"slider-block\">" +
+          "<div class=\"slider-label-row\"><label for=\"" + sliderID + "\">" + escapeHTML(prompt) + "</label><span id=\"" + valueID + "\" class=\"slider-value\">50</span></div>" +
+          "<input id=\"" + sliderID + "\" class=\"" + escapeHTML(className) + "\" type=\"range\" min=\"0\" max=\"100\" value=\"50\" step=\"1\" />" +
+          "<div class=\"slider-anchors\"><span>0 = " + escapeHTML(leftAnchor) + "</span><span>" + (midAnchor ? "50 = " + escapeHTML(midAnchor) : "") + "</span><span>100 = " + escapeHTML(rightAnchor) + "</span></div>" +
+          "</div>";
+      }
+
+      function showComprehensionForm(checks, attemptsSoFar) {
+        return new Promise(function (resolve) {
+          const warningHTML = attemptsSoFar > 0 ? '<div class="message warn">Some answers were not correct. Please review the instructions in each question and try once more.</div>' : "";
+          renderScreen(
+            panelHTML(
+              "<h1>Check before the main task</h1>" +
+              "<p>Please answer these questions before continuing.</p>" +
+              warningHTML +
+              '<p class="footer-helper">Need a reminder? Use the button below to go back to the beginning of the instructions. You will return to these checks without repeating practice.</p>' +
+              checks.map(function (check, index) {
+                return '<fieldset class="message"><legend><strong>' + (index + 1) + ". " + escapeHTML(check.question) + "</strong></legend>" +
+                  check.options.map(function (option) {
+                    return '<label class="radio-card"><input type="radio" name="check_' + escapeHTML(check.id) + '" value="' + escapeHTML(option.value) + '" />' + escapeHTML(option.label) + "</label>";
+                  }).join("") +
+                  "</fieldset>";
+              }).join("") +
+              '<div class="button-row"><button id="reviewInstructionsButton" class="secondary-button" type="button">Back to instructions</button><button id="comprehensionSubmit" class="primary-button" disabled>Continue</button></div>',
+              "wide"
+            )
+          );
+          const reviewButton = document.getElementById("reviewInstructionsButton");
+          const button = document.getElementById("comprehensionSubmit");
+          let resolved = false;
+
+          function resolveOnce(value) {
+            if (resolved) return;
+            resolved = true;
+            if (button) button.disabled = true;
+            if (reviewButton) reviewButton.disabled = true;
+            resolve(value);
+          }
+
+          Array.from(document.querySelectorAll("input[type='radio']")).forEach(function (radio) {
+            radio.addEventListener("change", function () {
+              const allAnswered = checks.every(function (check) { return getRadioValue("check_" + check.id); });
+              button.disabled = !allAnswered;
+            });
+          });
+          reviewButton.addEventListener("click", function () {
+            resolveOnce({ action: "review_instructions" });
+          }, { once: true });
+          button.addEventListener("click", function () {
+            const responses = {};
+            checks.forEach(function (check) {
+              responses[check.id] = getRadioValue("check_" + check.id);
+            });
+            resolveOnce({ action: "submit", responses: responses });
+          }, { once: true });
+        });
+      }
+
+      async function showPracticeFeedback(feedbackText, correct) {
+        return new Promise(function (resolve) {
+          renderScreen(
+            panelHTML(
+              "<h1>Practice feedback</h1>" +
+              "<div class=\"" + (correct ? "feedback-practice-correct" : "feedback-practice-incorrect") + "\">" + escapeHTML(feedbackText) + "</div>" +
+              "<div class=\"button-row\"><button id=\"feedbackContinue\" class=\"primary-button\">Continue</button></div>",
+              "narrow"
+            )
+          );
+          document.getElementById("feedbackContinue").addEventListener("click", resolve, { once: true });
+        });
+      }
+
+      async function showSimplePanel(title, bodyHTML, buttonText) {
+        return new Promise(function (resolve) {
+          renderScreen(
+            panelHTML(
+              "<h1>" + escapeHTML(title) + "</h1>" +
+              bodyHTML +
+              "<div class=\"button-row\"><button id=\"simpleContinue\" class=\"primary-button\">" + escapeHTML(buttonText || "Continue") + "</button></div>",
+              "wide"
+            )
+          );
+          document.getElementById("simpleContinue").addEventListener("click", resolve, { once: true });
+        });
+      }
+
+      async function showInterTrialBlank() {
+        const delay = effectiveTiming(CONFIG.interTrialBlankMs);
+        if (delay <= 0) return;
+        renderScreen("<div class=\"panel blank-panel\"></div>");
+        await sleep(delay);
+      }
+
+      async function screenOut(message) {
+        if (isUsableURL(CONFIG.prolificScreenoutURL)) {
+          renderScreen(panelHTML("<h1>Study ended</h1><p>" + escapeHTML(message) + "</p>", "narrow"));
+          window.location.href = CONFIG.prolificScreenoutURL;
+        } else {
+          renderScreen(panelHTML("<h1>Study ended</h1><p>" + escapeHTML(message) + "</p><p class=\"muted\">The screen-out URL is not configured. Please contact the researcher.</p>", "narrow"));
+        }
+        return new Promise(function () {});
+      }
+
+      function renderScreen(contentHTML, rightText) {
+        const right = rightText ? escapeHTML(rightText) : "";
+        app.innerHTML =
+          "<div class=\"top-bar\"><div><strong>Hidden Machine</strong></div><div>" + right + "</div></div>" +
+          "<section class=\"screen\">" + contentHTML + "</section>";
+        window.scrollTo(0, 0);
+      }
+
+      function panelHTML(contentHTML, sizeClass) {
+        return "<div class=\"panel " + escapeHTML(sizeClass || "") + "\">" + contentHTML + "</div>";
+      }
+
+      function showFatalMessage(message, exactOnly) {
+        if (exactOnly) {
+          app.innerHTML = "<div class=\"screen\"><div class=\"panel narrow\"><p>" + message + "</p></div></div>";
+        } else {
+          app.innerHTML = "<div class=\"screen\"><div class=\"panel narrow\"><div class=\"message error\">" + message + "</div></div></div>";
+        }
+      }
+
+      function consentQuestionHTML(name, question) {
+        return "<fieldset class=\"message\"><legend><strong>" + escapeHTML(question) + "</strong></legend>" +
+          "<label class=\"radio-card\"><input type=\"radio\" name=\"" + escapeHTML(name) + "\" value=\"yes\" />Yes</label>" +
+          "<label class=\"radio-card\"><input type=\"radio\" name=\"" + escapeHTML(name) + "\" value=\"no\" />No</label>" +
+          "</fieldset>";
+      }
+
+      function getPIDFromURL() {
+        const candidates = [CONFIG.prolificPIDParam, "PROLIFIC_PID", "participant_id", "pid", "prolific_pid", "Participant_ID", "PID"];
+        for (let i = 0; i < candidates.length; i += 1) {
+          const value = params.get(candidates[i]);
+          if (value && value.trim()) return value.trim();
+        }
+        return "";
+      }
+
+      function getRadioValue(name) {
+        const checked = document.querySelector("input[name='" + cssNameEscape(name) + "']:checked");
+        return checked ? checked.value : "";
+      }
+
+      function getStageNumbers(variables) {
+        return unique(variables.map(function (variable) { return Number(variable.stage); })).sort(function (a, b) { return a - b; });
+      }
+
+      function findVariableSpec(variableId) {
+        const fallbackShapes = {
+          A: "circle", B: "square", C: "triangle", D: "diamond", E: "hexagon",
+          X: "circle", Y: "square", Z: "diamond", L: "circle", M: "square", N: "diamond"
+        };
+        const allVariables = [];
+        if (state.corpus && Array.isArray(state.corpus.variables)) allVariables.push.apply(allVariables, state.corpus.variables);
+        if (state.corpus && state.corpus.practice && Array.isArray(state.corpus.practice.variables)) allVariables.push.apply(allVariables, state.corpus.practice.variables);
+        const found = allVariables.find(function (variable) { return variable.id === variableId; });
+        return found || { id: variableId, label: variableId, shape: fallbackShapes[variableId] || "circle", stage: 0 };
+      }
+
+      function getIntermediateCheckpointCounts() {
+        if (IS_DEMO) {
+          const final = state.observationRows.length;
+          return (state.corpus.metadata.checkpoints || []).filter(function (count) {
+            return Number(count) > 0 && Number(count) < final;
+          }).map(Number);
+        }
+        return CONFIG.checkpointObservationCounts.slice();
+      }
+
+      function getFinalCheckpointCount() {
+        return IS_DEMO ? state.observationRows.length : CONFIG.finalCheckpointObservationCount;
+      }
+
+      function nextOverallTrialNumber() {
+        state.trialCountOverall += 1;
+        return state.trialCountOverall;
+      }
+
+      function normalizePID(value) {
+        return String(value || "").trim().toLowerCase();
+      }
+
+      function normalizeHeader(value) {
+        return String(value || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+      }
+
+      function parseCSVRows(text) {
+        const rows = [];
+        let row = [];
+        let cell = "";
+        let inQuotes = false;
+        for (let i = 0; i < text.length; i += 1) {
+          const char = text[i];
+          const next = text[i + 1];
+          if (char === '"') {
+            if (inQuotes && next === '"') {
+              cell += '"';
+              i += 1;
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (char === "," && !inQuotes) {
+            row.push(cell);
+            cell = "";
+          } else if ((char === "\n" || char === "\r") && !inQuotes) {
+            if (char === "\r" && next === "\n") i += 1;
+            row.push(cell);
+            if (row.some(function (value) { return value !== ""; })) rows.push(row);
+            row = [];
+            cell = "";
+          } else {
+            cell += char;
+          }
+        }
+        row.push(cell);
+        if (row.some(function (value) { return value !== ""; })) rows.push(row);
+        return rows;
+      }
+
+      function csvEscape(value) {
+        if (value === undefined || value === null) return "";
+        let text;
+        if (typeof value === "object") {
+          text = JSON.stringify(value);
+        } else {
+          text = String(value);
+        }
+        if (/[",\n\r]/.test(text)) {
+          return '"' + text.replace(/"/g, '""') + '"';
+        }
+        return text;
+      }
+
+      function sample(array) {
+        return array[Math.floor(Math.random() * array.length)];
+      }
+
+      function shuffle(array) {
+        const copy = array.slice();
+        for (let i = copy.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const temp = copy[i];
+          copy[i] = copy[j];
+          copy[j] = temp;
+        }
+        return copy;
+      }
+
+      function unique(array) {
+        return Array.from(new Set(array));
+      }
+
+      function sleep(ms) {
+        return new Promise(function (resolve) { window.setTimeout(resolve, ms); });
+      }
+
+      function waitForButtonClick(id) {
+        return new Promise(function (resolve) {
+          const button = document.getElementById(id);
+          if (!button) { resolve(); return; }
+          let clicked = false;
+          button.addEventListener("click", function () {
+            if (clicked || button.disabled) return;
+            clicked = true;
+            button.disabled = true;
+            resolve();
+          });
+        });
+      }
+
+      function effectiveTiming(ms) {
+        if (CONFIG.debugMode) return Math.max(40, Math.round(ms * 0.25));
+        return ms;
+      }
+
+      function nowISO() {
+        return new Date().toISOString();
+      }
+
+      function filenameTimestamp() {
+        return nowISO().replace(/[:.]/g, "-");
+      }
+
+      function generateSessionKey() {
+        const random = Math.random().toString(36).slice(2, 10);
+        return Date.now() + "_" + random;
+      }
+
+      function safeFilenamePart(value) {
+        return String(value || "").replace(/[^A-Za-z0-9_-]+/g, "_").slice(0, 80) || "unknown";
+      }
+
+      function tileDOMID(id) {
+        return "tile_" + String(id).replace(/[^A-Za-z0-9_-]/g, "_");
+      }
+
+      function cssNameEscape(name) {
+        return String(name).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+      }
+
+      function escapeHTML(value) {
+        return String(value === undefined || value === null ? "" : value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function textToParagraphs(text) {
+        return String(text || "")
+          .split(/\n{2,}/)
+          .map(function (paragraph) { return paragraph.trim(); })
+          .filter(Boolean)
+          .map(function (paragraph) { return "<p>" + escapeHTML(paragraph).replace(/\n/g, "<br>") + "</p>"; })
+          .join("");
+      }
+
+      function deepClone(value) {
+        return JSON.parse(JSON.stringify(value));
+      }
+
+      function isUsableURL(url) {
+        const text = String(url || "").trim();
+        return /^https?:\/\//i.test(text) && text.indexOf("USE_EXISTING_OR_PLACEHOLDER") === -1;
+      }
+
+      function completionRedirectHTML() {
+        if (isUsableURL(CONFIG.prolificCompletionURL)) {
+          return "<p><a class=\"primary-button\" href=\"" + escapeHTML(CONFIG.prolificCompletionURL) + "\">Complete the study in Prolific</a></p>";
+        }
+        return "<p class=\"muted\">The Prolific completion URL is not configured. Please contact the researcher.</p>";
+      }
+
+      function stopExperiment() {
+        const error = new Error("Stop experiment");
+        error.stopExperiment = true;
+        throw error;
+      }
+    })();
+  </script>
+</body>
+</html>
